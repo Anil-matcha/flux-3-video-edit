@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flux-3-video-edit-api"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
   { name="Anil Matcha" },
 ]
-description = "Python wrapper for Black Forest Labs' FLUX 3 Video Edit API -- instruction-driven editing of existing video clips (coming soon)."
+description = "Python wrapper for FLUX 3 Video Extend -- continues an existing video clip with new prompt-guided motion and scene development, via muapi.ai."
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [

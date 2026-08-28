@@ -2,9 +2,9 @@ from setuptools import setup
 
 setup(
     name="flux-3-video-edit-api",
-    version="0.1.0",
+    version="0.2.0",
     author="Anil Matcha",
-    description="Python wrapper for Black Forest Labs' FLUX 3 Video Edit API -- instruction-driven editing of existing video clips (coming soon).",
+    description="Python wrapper for FLUX 3 Video Extend -- continues an existing video clip with new prompt-guided motion and scene development, via muapi.ai.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     py_modules=["flux3_video_edit_api", "mcp_server"],
