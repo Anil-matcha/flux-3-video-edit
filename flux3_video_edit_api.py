@@ -23,28 +23,72 @@ class Flux3VideoEditAPI:
             "Content-Type": "application/json"
         }
 
-    def edit_video(self, prompt, video_url, resolution="720p"):
+    def edit_video(self, prompt, video_url, resolution="720p", aspect_ratio=None,
+                   duration=5, generate_audio=True):
         """
-        Submits a FLUX 3 Video Edit task.
+        Submits a FLUX 3 Video Extend task.
 
-        FLUX 3 Video Edit applies natural-language instructions directly to an
-        existing video clip -- re-grading color, restyling a scene, swapping an
-        object, or extending a shot -- using Black Forest Labs' unified
-        image/video/audio architecture. Listed by Black Forest Labs as coming
-        soon; this endpoint will activate on MuAPI as soon as it reaches
-        general availability.
+        Note: FLUX 3 does not ship a general instruction-driven video editor
+        (no arbitrary re-grade/restyle/object-swap). The live API is FLUX 3
+        Video Extend: it CONTINUES an existing clip with new prompt-guided
+        motion and scene development, with optional native synchronized
+        audio, using Black Forest Labs' unified image/video/audio
+        architecture. This method is kept under its original name for
+        backwards compatibility with existing callers of this package, but
+        it now calls the real flux-3-video-extend endpoint.
 
-        :param prompt: Text instruction describing the edit to apply.
-        :param video_url: URL of the source video to edit.
-        :param resolution: Output resolution ('480p', '720p', or '1080p').
+        :param prompt: Text describing how the video should continue (not a
+            free-form edit instruction).
+        :param video_url: URL of the source video to extend. Must be under
+            50MB and under 15 seconds.
+        :param resolution: Output resolution ('720p' or '1080p').
+        :param aspect_ratio: Optional output aspect ratio, one of
+            '21:9', '2:1', '16:9', '4:3', '1:1', '3:4', '9:16'.
+        :param duration: Length of the extension in seconds (5-20, default 5).
+        :param generate_audio: Whether to generate synchronized native audio.
         :return: JSON response with request_id.
         """
-        endpoint = f"{self.base_url}/flux-3-video-edit"
+        endpoint = f"{self.base_url}/flux-3-video-extend"
         payload = {
             "prompt": prompt,
             "video_url": video_url,
             "resolution": resolution,
+            "duration": duration,
+            "generate_audio": generate_audio,
         }
+        if aspect_ratio:
+            payload["aspect_ratio"] = aspect_ratio
+        return self._post_request(endpoint, payload)
+
+    def extend_video(self, prompt, video_url, resolution="720p", aspect_ratio=None,
+                      duration=5, generate_audio=True):
+        """Alias for edit_video() with a name that matches what the API actually does."""
+        return self.edit_video(prompt, video_url, resolution, aspect_ratio, duration, generate_audio)
+
+    def extend_video_draft(self, prompt, video_url, aspect_ratio=None,
+                            duration=5, generate_audio=True):
+        """
+        Submits a FLUX 3 Video Extend Draft task -- a fast, lower-cost draft
+        mode for testing continuity and camera movement before extending a
+        clip with extend_video(). Same fields as extend_video() but no
+        resolution parameter (billed flat regardless of quality tier).
+
+        :param prompt: Text describing how the video should continue.
+        :param video_url: URL of the source video to extend (<50MB, <15s).
+        :param aspect_ratio: Optional output aspect ratio.
+        :param duration: Length of the draft extension in seconds (5-20, default 5).
+        :param generate_audio: Whether to generate synchronized native audio.
+        :return: JSON response with request_id.
+        """
+        endpoint = f"{self.base_url}/flux-3-video-extend-draft"
+        payload = {
+            "prompt": prompt,
+            "video_url": video_url,
+            "duration": duration,
+            "generate_audio": generate_audio,
+        }
+        if aspect_ratio:
+            payload["aspect_ratio"] = aspect_ratio
         return self._post_request(endpoint, payload)
 
     # ------------------------------------------------------------------
@@ -113,8 +157,8 @@ if __name__ == "__main__":
         prompt = "Apply a cinematic teal-and-orange grade"
         video_url = "https://example.com/clip.mp4"
 
-        print(f"Submitting FLUX 3 Video Edit task with prompt: {prompt}")
-        submission = api.edit_video(prompt=prompt, video_url=video_url, resolution="1080p")
+        print(f"Submitting FLUX 3 Video Extend task with prompt: {prompt}")
+        submission = api.extend_video(prompt=prompt, video_url=video_url, resolution="1080p")
         request_id = submission.get("request_id")
         print(f"Task submitted. Request ID: {request_id}")
 
